@@ -2,8 +2,7 @@ name: Build APK
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -17,36 +16,51 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Check Project Files
-        run: |
-          echo "Memeriksa struktur proyek..."
-          ls -la
-          if [ ! -f "gradlew" ]; then
-            echo "ERROR: File gradlew tidak ditemukan di folder utama."
-            exit 1
-          fi
-          if [ ! -f "app/build.gradle" ] && [ ! -f "app/build.gradle.kts" ]; then
-            echo "ERROR: Konfigurasi Gradle aplikasi tidak ditemukan."
-            exit 1
-          fi
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-          cache: gradle
 
-      - name: Grant Execute Permission
-        run: chmod +x ./gradlew
-
-      - name: Show Java and Gradle Versions
+      - name: Inspect Project
         run: |
-          java -version
-          ./gradlew --version
+          echo "=== ROOT ==="
+          pwd
+          ls -la
+          echo "=== GRADLE FILES ==="
+          find . -maxdepth 3 \
+            \( -name gradlew \
+            -o -name settings.gradle \
+            -o -name settings.gradle.kts \
+            -o -name build.gradle \
+            -o -name build.gradle.kts \
+            -o -name package.json \
+            -o -name config.xml \) \
+            -type f -print
 
-      - name: Build Debug APK
-        run: ./gradlew :app:assembleDebug --no-daemon
+      - name: Validate Android Project
+        run: |
+          if [ ! -f gradlew ]; then
+            echo "ERROR: gradlew tidak ditemukan di folder utama."
+            exit 1
+          fi
+
+          if [ ! -f settings.gradle ] && \
+             [ ! -f settings.gradle.kts ]; then
+            echo "ERROR: settings.gradle tidak ditemukan."
+            exit 1
+          fi
+
+          if [ ! -f app/build.gradle ] && \
+             [ ! -f app/build.gradle.kts ]; then
+            echo "ERROR: Konfigurasi modul app tidak ditemukan."
+            exit 1
+          fi
+
+      - name: Build APK
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
         if: success()
@@ -55,4 +69,3 @@ jobs:
           name: app-debug
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
-          retention-days: 7

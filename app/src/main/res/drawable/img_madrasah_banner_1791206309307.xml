@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="800dp"
+    android:height="450dp"
+    android:viewportWidth="800"
+    android:viewportHeight="450">
+    <!-- Sky / Courtyard Background -->
+    <path
+        android:fillColor="#0B3D2E"
+        android:pathData="M0,0h800v450h-800z" />
+    <!-- Soft Emerald Geometric Hills -->
+    <path
+        android:fillColor="#0A6B4A"
+        android:pathData="M0,260 Q220,180 450,250 T800,210 L800,450 L0,450 Z" />
+    <path
+        android:fillColor="#148860"
+        android:fillAlpha="0.55"
+        android:pathData="M0,320 Q300,240 560,310 T800,280 L800,450 L0,450 Z" />
+    <!-- Warm Crescent & Sun Glow -->
+    <path
+        android:fillColor="#FDE68A"
+        android:fillAlpha="0.22"
+        android:pathData="M650,110 m-65,0 a65,65 0 1,0 130,0 a65,65 0 1,0 -130,0" />
+    <!-- Madrasah Dome & Arch Silhouette -->
+    <path
+        android:fillColor="#E8F5F0"
+        android:fillAlpha="0.18"
+        android:pathData="M280,450 L280,220 Q400,110 520,220 L520,450 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.12"
+        android:pathData="M140,450 L140,260 Q200,200 260,260 L260,450 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.12"
+        android:pathData="M540,450 L540,260 Q600,200 660,260 L660,450 Z" />
+</vector>

@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Absensi MI</string>
+    <string name="app_subtitle">Administrasi &amp; Kehadiran Siswa</string>
+    <string name="login_title">Masuk Sistem Absensi MI</string>
+    <string name="login_username">Username / NIP / NIS</string>
+    <string name="login_password">Kata Sandi</string>
+    <string name="login_button">Masuk</string>
+    <string name="logout_button">Keluar</string>
+    <string name="logout_confirm_title">Konfirmasi Keluar</string>
+    <string name="logout_confirm_message">Apakah Anda yakin ingin keluar dari sesi aplikasi ini?</string>
+    <string name="btn_save">Simpan</string>
+    <string name="btn_cancel">Batal</string>
+    <string name="btn_close">Tutup</string>
+    <string name="btn_yes">Ya, Keluar</string>
+    <string name="btn_delete">Hapus</string>
+    <string name="btn_edit">Edit</string>
+    <string name="btn_add">Tambah</string>
+    <string name="btn_print">Cetak</string>
+    <string name="btn_pdf">PDF</string>
+    <string name="btn_excel">Excel</string>
+    <string name="camera_unavailable">Kamera tidak tersedia atau izin ditolak. Gunakan daftar siswa cepat atau masukkan NIS untuk mencatat kehadiran.</string>
+</resources>

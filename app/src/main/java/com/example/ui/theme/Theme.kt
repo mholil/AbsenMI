@@ -9,15 +9,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 private val MiLightColorScheme = lightColorScheme(
-    primary = MiDarkGreen,
+    primary = MiEmerald,
     onPrimary = Color.White,
     primaryContainer = MiMintSoft,
     onPrimaryContainer = MiDarkGreen,
-    secondary = MiEmerald,
+    secondary = MiEmeraldLight,
     onSecondary = Color.White,
     secondaryContainer = MiMintSoft,
-    onSecondaryContainer = MiEmerald,
-    tertiary = MiEmeraldLight,
+    onSecondaryContainer = MiEmeraldLight,
+    tertiary = Color(0xFF72C7FF),
     onTertiary = Color.White,
     background = MiBackground,
     onBackground = MiTextPrimary,
@@ -35,10 +35,10 @@ private val MiLightColorScheme = lightColorScheme(
 
 val MiShapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp),
-    small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(20.dp),
-    extraLarge = RoundedCornerShape(24.dp)
+    small = RoundedCornerShape(14.dp),
+    medium = RoundedCornerShape(18.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(30.dp)
 )
 
 @Composable
@@ -48,7 +48,12 @@ fun MyApplicationTheme(
     MaterialTheme(
         colorScheme = MiLightColorScheme,
         typography = Typography,
-        shapes = MiShapes,
-        content = content
-    )
+        shapes = MiShapes
+    ) {
+        androidx.compose.runtime.CompositionLocalProvider(
+            androidx.compose.material3.LocalTextStyle provides Typography.bodyMedium
+        ) {
+            content()
+        }
+    }
 }

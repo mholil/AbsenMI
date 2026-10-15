@@ -14,6 +14,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -35,6 +37,37 @@ fun DataAndStudentsSection(
     val isWali = user.role == RoleType.WALI_KELAS
     val context = LocalContext.current
 
+    var waliFilterType by remember { mutableStateOf("ALL") }
+    val rawStudents = viewModel.getScopedStudents(state)
+    val students = if (isWali) {
+        when (waliFilterType) {
+            "L" -> rawStudents.filter { it.gender.startsWith("L", ignoreCase = true) }
+            "P" -> rawStudents.filter { it.gender.startsWith("P", ignoreCase = true) }
+            "NOTES" -> rawStudents.filter { st ->
+                state.notes.any { it.studentId == st.id } ||
+                state.achievements.any { it.studentId == st.id } ||
+                state.violations.any { it.studentId == st.id }
+            }
+            "ARREARS" -> rawStudents.filter { st ->
+                state.arrears.any { it.studentId == st.id && it.status != "Lunas" && (it.nominal - it.paidAmount) > 0L }
+            }
+            else -> rawStudents
+        }
+    } else {
+        rawStudents
+    }
+
+    val maleCount = rawStudents.count { it.gender.startsWith("L", ignoreCase = true) }
+    val femaleCount = rawStudents.count { it.gender.startsWith("P", ignoreCase = true) }
+    val notesCount = rawStudents.count { st ->
+        state.notes.any { it.studentId == st.id } ||
+        state.achievements.any { it.studentId == st.id } ||
+        state.violations.any { it.studentId == st.id }
+    }
+    val arrearsCount = rawStudents.count { st ->
+        state.arrears.any { it.studentId == st.id && it.status != "Lunas" && (it.nominal - it.paidAmount) > 0L }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -48,7 +81,7 @@ fun DataAndStudentsSection(
             ScrollableTabRow(
                 selectedTabIndex = state.dataSectionTab,
                 containerColor = MiSurface,
-                contentColor = MiDarkGreen,
+                contentColor = Color(0xFF4978FF),
                 edgePadding = 0.dp,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -77,41 +110,164 @@ fun DataAndStudentsSection(
             }
             Spacer(modifier = Modifier.height(10.dp))
         } else if (isWali) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(16.dp), spotColor = Color(0x334978FF)),
+                shape = RoundedCornerShape(16.dp),
+                color = Color.Transparent
             ) {
-                Column {
-                    Text(
-                        text = "Data Siswa ${user.assignedClassName}",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MiTextPrimary
-                    )
-                    Text(
-                        text = "Kelola profil, orang tua, catatan, prestasi & pelanggaran",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MiTextSecondary
-                    )
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    OutlinedButton(
-                        onClick = { viewModel.openModal(ActiveModal.ArrearsManagementModal) },
-                        shape = RoundedCornerShape(10.dp),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
-                    ) {
-                        Icon(Icons.Outlined.Payments, contentDescription = null, modifier = Modifier.size(15.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Tunggakan", fontSize = 12.sp)
-                    }
-                    OutlinedButton(
-                        onClick = { viewModel.openModal(ActiveModal.HomeroomAdminModal) },
-                        shape = RoundedCornerShape(10.dp),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
-                    ) {
-                        Icon(Icons.Outlined.School, contentDescription = null, modifier = Modifier.size(15.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Info Kelas", fontSize = 12.sp)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(
+                                    Color(0xFF4978FF),
+                                    Color(0xFF8051E9)
+                                )
+                            )
+                        )
+                        .padding(14.dp)
+                ) {
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Data Siswa ${user.assignedClassName}",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "Wali: ${user.fullName} • TP ${state.settings.activeAcademicYear}",
+                                    fontSize = 12.sp,
+                                    color = Color.White.copy(alpha = 0.9f)
+                                )
+                            }
+                            Surface(
+                                color = Color.White.copy(alpha = 0.22f),
+                                shape = RoundedCornerShape(12.dp),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.45f))
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Groups,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "${rawStudents.size} Siswa",
+                                        fontSize = 12.5.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // Stats Breakdown Row
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Surface(
+                                color = Color.White.copy(alpha = 0.16f),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(
+                                    text = "♂ $maleCount Laki-laki",
+                                    fontSize = 11.5.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(vertical = 5.dp, horizontal = 4.dp),
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                            }
+                            Surface(
+                                color = Color.White.copy(alpha = 0.16f),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(
+                                    text = "♀ $femaleCount Perempuan",
+                                    fontSize = 11.5.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(vertical = 5.dp, horizontal = 4.dp),
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                            }
+                            Surface(
+                                color = Color.White.copy(alpha = 0.16f),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(
+                                    text = "⚠ $arrearsCount Tunggakan",
+                                    fontSize = 11.5.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(vertical = 5.dp, horizontal = 4.dp),
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // Homeroom Actions Row
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = { viewModel.openModal(ActiveModal.ArrearsManagementModal) },
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.White,
+                                    contentColor = Color(0xFF4978FF)
+                                ),
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .heightIn(min = 36.dp)
+                            ) {
+                                Icon(Icons.Outlined.Payments, contentDescription = null, modifier = Modifier.size(14.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Tunggakan SPP", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Button(
+                                onClick = { viewModel.openModal(ActiveModal.HomeroomAdminModal) },
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.White.copy(alpha = 0.22f),
+                                    contentColor = Color.White
+                                ),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)),
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .heightIn(min = 36.dp)
+                            ) {
+                                Icon(Icons.Outlined.Campaign, contentDescription = null, modifier = Modifier.size(14.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Info / Catatan", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                            }
+                        }
                     }
                 }
             }
@@ -168,7 +324,7 @@ fun DataAndStudentsSection(
                         }
                     },
                     shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MiEmerald),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4978FF)),
                     modifier = Modifier
                         .height(54.dp)
                         .testTag("data_add_button")
@@ -184,7 +340,41 @@ fun DataAndStudentsSection(
 
         val activeSubTab = if (isAdmin) state.dataSectionTab else 0
 
-        if (activeSubTab == 0 || activeSubTab == 4) {
+        if (isWali) {
+            androidx.compose.foundation.lazy.LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(vertical = 4.dp)
+            ) {
+                val chips = listOf(
+                    "ALL" to "Semua (${rawStudents.size})",
+                    "L" to "Laki-laki ($maleCount)",
+                    "P" to "Perempuan ($femaleCount)",
+                    "NOTES" to "Catatan ($notesCount)",
+                    "ARREARS" to "Tunggakan ($arrearsCount)"
+                )
+                items(chips) { (key, label) ->
+                    val isSelected = waliFilterType == key
+                    Surface(
+                        onClick = { waliFilterType = key },
+                        shape = RoundedCornerShape(20.dp),
+                        color = if (isSelected) Color(0xFF4978FF) else MiSurface,
+                        border = BorderStroke(
+                            1.dp,
+                            if (isSelected) Color(0xFF4978FF) else MiBorderColor
+                        )
+                    ) {
+                        Text(
+                            text = label,
+                            fontSize = 12.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isSelected) Color.White else MiTextPrimary,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        )
+                    }
+                }
+            }
+        } else if (isAdmin && (activeSubTab == 0 || activeSubTab == 4)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -194,12 +384,12 @@ fun DataAndStudentsSection(
                     ClassFilterRow(
                         classes = state.classes,
                         selectedClassId = state.selectedClassIdFilter,
-                        isLockedToAssignedClass = isWali,
+                        isLockedToAssignedClass = false,
                         assignedClassName = user.assignedClassName,
                         onSelectClass = { viewModel.setClassFilter(it) }
                     )
                 }
-                if (isAdmin && activeSubTab == 0) {
+                if (activeSubTab == 0) {
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         TextButton(
                             onClick = { viewModel.openModal(ActiveModal.BackupRestoreModal) },
@@ -207,7 +397,7 @@ fun DataAndStudentsSection(
                         ) {
                             Icon(Icons.Outlined.ImportExport, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Import/Export", fontSize = 12.sp, color = MiEmerald)
+                            Text("Import/Export", fontSize = 12.sp, color = Color(0xFF4978FF))
                         }
                     }
                 }
@@ -218,7 +408,7 @@ fun DataAndStudentsSection(
 
         when (activeSubTab) {
             0 -> StudentsListContent(
-                students = viewModel.getScopedStudents(state),
+                students = students,
                 attendance = state.attendance,
                 notes = state.notes,
                 achievements = state.achievements,
@@ -336,18 +526,25 @@ private fun StudentsListContent(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val isMale = st.gender.startsWith("L", ignoreCase = true)
                     Box(
                         modifier = Modifier
-                            .size(44.dp)
+                            .size(46.dp)
+                            .shadow(2.dp, CircleShape, spotColor = Color.Black.copy(alpha = 0.2f))
                             .clip(CircleShape)
-                            .background(MiMintSoft),
+                            .background(
+                                Brush.linearGradient(
+                                    if (isMale) listOf(Color(0xFF4978FF), Color(0xFF72C7FF))
+                                    else listOf(Color(0xFF8051E9), Color(0xFFC9A8FF))
+                                )
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = st.fullName.take(1).uppercase(),
-                            fontSize = 17.sp,
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MiDarkGreen
+                            color = Color.White
                         )
                     }
                     Spacer(modifier = Modifier.width(12.dp))
@@ -380,108 +577,142 @@ private fun StudentsListContent(
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
-                HorizontalDivider(color = MiBorderColor.copy(alpha = 0.6f))
+                HorizontalDivider(color = MiBorderColor.copy(alpha = 0.5f))
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // Record Indicators Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (stNotes > 0) {
+                        SmallRecordPill(label = "Catatan: $stNotes", tint = Color(0xFF4978FF))
+                    }
+                    if (stAch > 0) {
+                        SmallRecordPill(label = "Prestasi: $stAch", tint = StatusIzinText)
+                    }
+                    if (stViol > 0) {
+                        SmallRecordPill(label = "Pelanggaran: $stViol", tint = StatusAlpaText)
+                    }
+                    if (unpaidCount > 0) {
+                        SmallRecordPill(label = "Tunggakan: $unpaidCount", tint = StatusTerlambatText)
+                    }
+                    if (stNotes == 0 && stAch == 0 && stViol == 0 && unpaidCount == 0) {
+                        SmallRecordPill(label = "Tertib & Lunas", tint = Color(0xFF10B981))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Action Buttons Row (full width, comfortable touch targets, responsive)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        SmallRecordPill(label = "Catatan: $stNotes", tint = MiEmerald)
-                        SmallRecordPill(label = "Prestasi: $stAch", tint = StatusIzinText)
-                        if (stViol > 0) {
-                            SmallRecordPill(label = "Pelanggaran: $stViol", tint = StatusAlpaText)
-                        }
-                        if (unpaidCount > 0) {
-                            SmallRecordPill(label = "Tunggakan: $unpaidCount", tint = StatusTerlambatText)
-                        }
+                    OutlinedButton(
+                        onClick = {
+                            val waMsg = buildStudentComprehensiveWaMessage(
+                                student = st,
+                                schoolName = schoolName,
+                                attendance = attendance,
+                                notes = notes,
+                                achievements = achievements,
+                                violations = violations,
+                                arrears = arrears,
+                                senderName = senderName
+                            )
+                            openWhatsAppChat(
+                                context = context,
+                                rawPhone = st.parentPhone,
+                                message = waMsg,
+                                onFeedback = onFeedback
+                            )
+                        },
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, Color(0xFF25D366)),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color(0xFF1E8E3E)
+                        ),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                        modifier = Modifier
+                            .heightIn(min = 38.dp)
+                            .testTag("student_wa_btn_${st.nis}")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Chat,
+                            contentDescription = "Kirim WA Orang Tua",
+                            tint = Color(0xFF25D366),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(
+                            text = "Kirim WA",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        OutlinedButton(
-                            onClick = {
-                                val waMsg = buildStudentComprehensiveWaMessage(
-                                    student = st,
-                                    schoolName = schoolName,
-                                    attendance = attendance,
-                                    notes = notes,
-                                    achievements = achievements,
-                                    violations = violations,
-                                    arrears = arrears,
-                                    senderName = senderName
-                                )
-                                openWhatsAppChat(
-                                    context = context,
-                                    rawPhone = st.parentPhone,
-                                    message = waMsg,
-                                    onFeedback = onFeedback
-                                )
-                            },
-                            shape = RoundedCornerShape(10.dp),
-                            border = BorderStroke(1.dp, MiEmerald),
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                            modifier = Modifier
-                                .heightIn(min = 34.dp)
-                                .testTag("student_wa_btn_${st.nis}")
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Chat,
-                                contentDescription = "Kirim WA Orang Tua",
-                                tint = MiEmerald,
-                                modifier = Modifier.size(15.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "Kirim WA",
-                                fontSize = 11.sp,
-                                color = MiDarkGreen,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-
-                        IconButton(
+                        Surface(
                             onClick = { onShowQr(st) },
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFF4978FF).copy(alpha = 0.08f),
+                            border = BorderStroke(1.dp, Color(0xFF4978FF).copy(alpha = 0.25f)),
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(38.dp)
                                 .testTag("student_qr_btn_${st.nis}")
                         ) {
-                            Icon(
-                                imageVector = Icons.Outlined.QrCode2,
-                                contentDescription = "Kartu QR Siswa",
-                                tint = MiDarkGreen,
-                                modifier = Modifier.size(20.dp)
-                            )
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Outlined.QrCode2,
+                                    contentDescription = "Kartu QR Siswa",
+                                    tint = Color(0xFF4978FF),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
                         }
-                        IconButton(
+
+                        Surface(
                             onClick = { onAddNote(st) },
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFF8051E9).copy(alpha = 0.08f),
+                            border = BorderStroke(1.dp, Color(0xFF8051E9).copy(alpha = 0.25f)),
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(38.dp)
                                 .testTag("student_note_btn_${st.nis}")
                         ) {
-                            Icon(
-                                imageVector = Icons.Outlined.NoteAdd,
-                                contentDescription = "Tambah Catatan/Prestasi/Pelanggaran",
-                                tint = MiEmerald,
-                                modifier = Modifier.size(20.dp)
-                            )
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Outlined.NoteAdd,
+                                    contentDescription = "Tambah Catatan/Prestasi/Pelanggaran",
+                                    tint = Color(0xFF8051E9),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
                         }
-                        IconButton(
+
+                        Surface(
                             onClick = { onEditStudent(st) },
+                            shape = RoundedCornerShape(10.dp),
+                            color = MiBorderColor.copy(alpha = 0.4f),
+                            border = BorderStroke(1.dp, MiBorderColor),
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(38.dp)
                                 .testTag("student_edit_btn_${st.nis}")
                         ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Edit,
-                                contentDescription = "Edit Siswa",
-                                tint = MiTextSecondary,
-                                modifier = Modifier.size(19.dp)
-                            )
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Edit,
+                                    contentDescription = "Edit Siswa",
+                                    tint = MiTextSecondary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
                         }
                     }
                 }

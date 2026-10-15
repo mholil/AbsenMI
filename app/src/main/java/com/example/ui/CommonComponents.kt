@@ -180,15 +180,15 @@ fun NeumorphicTactileButton(
     contentPadding: PaddingValues = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
     content: @Composable RowScope.() -> Unit
 ) {
-    val bgColor = if (isPrimary) MiDarkGreen else Color.White
+    val bgColor = if (isPrimary) MiEmerald else Color.White
     val borderStroke = if (isPrimary) {
-        BorderStroke(1.dp, MiEmeraldLight.copy(alpha = 0.4f))
+        BorderStroke(1.dp, MiEmeraldLight.copy(alpha = 0.5f))
     } else {
         BorderStroke(1.dp, MiBorderColor)
     }
 
-    val spotColor = if (isPrimary) MiDarkGreen.copy(alpha = 0.25f) else Color(0x12000000)
-    val ambientColor = if (isPrimary) MiDarkGreen.copy(alpha = 0.12f) else Color(0x06000000)
+    val spotColor = if (isPrimary) Color(0x353A4FA0) else Color(0x12000000)
+    val ambientColor = if (isPrimary) Color(0x183A4FA0) else Color(0x06000000)
 
     Surface(
         onClick = onClick,

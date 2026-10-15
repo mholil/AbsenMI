@@ -213,8 +213,8 @@ private fun AuthenticatedMainScaffold(
                         },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = Color.White,
-                            selectedTextColor = MiDarkGreen,
-                            indicatorColor = MiDarkGreen,
+                            selectedTextColor = Color(0xFF4978FF),
+                            indicatorColor = Color(0xFF4978FF),
                             unselectedIconColor = MiTextSecondary,
                             unselectedTextColor = MiTextSecondary
                         ),
@@ -317,66 +317,60 @@ private fun MadrasahTopAppBar(
     onRequestLogout: () -> Unit
 ) {
     Surface(
-        color = MiDarkGreen,
-        shadowElevation = 4.dp,
         modifier = Modifier
             .fillMaxWidth()
             .shadow(
-                elevation = 4.dp,
-                ambientColor = MiDarkGreen.copy(alpha = 0.2f),
-                spotColor = MiDarkGreen.copy(alpha = 0.35f)
+                elevation = 6.dp,
+                ambientColor = Color(0x333A4FA0),
+                spotColor = Color(0x333A4FA0)
             )
-            .border(
-                BorderStroke(
-                    1.dp,
-                    Brush.verticalGradient(
-                        listOf(
-                            Color.White.copy(alpha = 0.25f),
-                            Color.Transparent
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            Color(0xFF4978FF), // #4978ff
+                            Color(0xFF8051E9)  // #8051e9
                         )
                     )
                 )
-            )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .windowInsetsPadding(WindowInsets.statusBars)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .windowInsetsPadding(WindowInsets.statusBars)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(38.dp)
-                        .shadow(2.5.dp, RoundedCornerShape(11.dp), spotColor = Color.Black.copy(alpha = 0.3f))
-                        .clip(RoundedCornerShape(11.dp))
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(
-                                    MiEmeraldLight,
-                                    MiEmerald
-                                )
-                            )
-                        )
-                        .border(
-                            BorderStroke(
-                                1.dp,
-                                Brush.verticalGradient(
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .shadow(2.5.dp, RoundedCornerShape(11.dp), spotColor = Color.Black.copy(alpha = 0.2f))
+                            .clip(RoundedCornerShape(11.dp))
+                            .background(
+                                Brush.linearGradient(
                                     listOf(
-                                        Color.White.copy(alpha = 0.45f),
-                                        Color.Transparent
+                                        Color(0xFFC9A8FF),
+                                        Color(0xFF72C7FF)
                                     )
                                 )
+                            )
+                            .border(
+                                BorderStroke(
+                                    1.dp,
+                                    Color.White.copy(alpha = 0.6f)
+                                ),
+                                RoundedCornerShape(11.dp)
                             ),
-                            RoundedCornerShape(11.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
+                        contentAlignment = Alignment.Center
+                    ) {
                     Icon(
                         imageVector = Icons.Outlined.School,
                         contentDescription = "Logo MI",
@@ -395,7 +389,11 @@ private fun MadrasahTopAppBar(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = "${RoleType.label(user.role)} • $schoolName",
+                        text = if (user.role == RoleType.WALI_KELAS && user.assignedClassName.isNotBlank()) {
+                            "Wali Kelas ${user.assignedClassName}"
+                        } else {
+                            RoleType.label(user.role)
+                        },
                         fontSize = 12.sp,
                         color = Color.White.copy(alpha = 0.85f),
                         maxLines = 1,
@@ -472,3 +470,5 @@ private fun MadrasahTopAppBar(
         }
     }
 }
+}
+
